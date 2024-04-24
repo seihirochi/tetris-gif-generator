@@ -1,22 +1,10 @@
+import argparse
 import os
 
 import imageio
 from PIL import Image, ImageDraw, ImageFont
 
-from .config import minos
-
-# 色情報を定義
-colors = [
-    (  64,  64,  64), # 黒
-    (   0, 255, 255), # 水
-    (   0,   0, 255), # 青
-    ( 255, 165,   0), # 橙
-    ( 255, 255,   0), # 黄
-    (   0, 255,   0), # 緑
-    ( 138,  43, 226), # 紫
-    ( 255,   0,   0), # 赤
-    ( 192, 192, 192), # 白
-]
+from .config import colors, minos
 
 output_dir = 'img'
 NEXT_MINO_COLUMN = 4
@@ -25,6 +13,10 @@ NEXT_MINO_COLUMN = 4
 def generate_tetris_board(board, next_minos, hold_minos):
     # 1マスのサイズ
     cell_size = 20
+
+    # フォントの設定
+    font_size = cell_size
+    font = ImageFont.truetype("font/ARIAL.TTF", font_size)
 
     # ボードのサイズ
     turns = len(board)
@@ -121,12 +113,19 @@ def generate_tetris_board(board, next_minos, hold_minos):
     return
           
 # 生成した画像からGIFを作成する関数
-def create_gif(images, filename, duration=0.5):
-    with imageio.get_writer(filename, mode='I', duration=duration) as writer:
+def create_gif(output_dir, turns, filename, duration=0.5):
+    # ターンごとの画像ファイルをリストに追加
+    images = []
+    for turn in range(turns):
+        image_path = os.path.join(output_dir, f"turn{turn}.png")
+        images.append(imageio.imread(image_path))
+    
+    # GIF を生成
+    with imageio.get_writer(filename, mode='I', duration=duration, loop=0) as writer:
         for image in images:
             writer.append_data(image)
 
-def main():
+def main(duration=0.5, loop=0, delay_last_frame=2):
     with open('in.txt', 'r') as file:
         # ターン数、高さ、幅を読み込む
         turns, height, width = map(int, file.readline().split())
@@ -153,4 +152,9 @@ def main():
     generate_tetris_board(board, next_minos, hold_minos)
 
     # GIFを作成する
-    # create_gif([tetris_board]*10, 'tetris_animation.gif', duration=0.2)
+    parser = argparse.ArgumentParser(description="Generate GIF animation from images")
+    parser.add_argument("--duration", type=float, default=duration, help="Duration (in seconds) of each frame")
+    parser.add_argument("--loop", type=int, default=loop, help="Number of times the GIF animation should loop (0 for infinite loop)")
+    parser.add_argument("--delay_last_frame", type=float, default=delay_last_frame, help="Delay (in seconds) for the last frame to stay visible")
+    args = parser.parse_args()
+    create_gif(output_dir, turns, "tetris_animation.gif", duration=0.2)
