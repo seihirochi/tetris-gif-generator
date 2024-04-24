@@ -1,0 +1,30 @@
+[project]
+name = "tetris-gif-generator"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "thirofoo", email = "83126064+thirofoo@users.noreply.github.com" }
+]
+dependencies = [
+    "pillow>=10.3.0",
+    "imageio>=2.34.1",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[project.scripts]
+generate = "tetris_gif_generator:main"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tetris_gif_generator"]
