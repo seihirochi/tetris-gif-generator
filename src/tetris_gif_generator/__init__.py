@@ -1,7 +1,7 @@
 import os
 
 import imageio
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from .config import minos
 
@@ -22,7 +22,7 @@ output_dir = 'img'
 NEXT_MINO_COLUMN = 4
 
 # Tetrisのゲーム盤を生成する関数
-def generate_tetris_board(board, next_minos):
+def generate_tetris_board(board, next_minos, hold_minos):
     # 1マスのサイズ
     cell_size = 20
 
@@ -95,6 +95,25 @@ def generate_tetris_board(board, next_minos):
                     draw.rectangle([pos_x, pos_y, pos_x + cell_size, pos_y + cell_size], fill=color, outline='black')
             next_mino_height += len(mino[0]) + 1
 
+        # ホールドミノを描画
+        hold_mino_index = hold_minos[turn]
+        hold_mino = minos[hold_mino_index]
+        for y in range(len(hold_mino)):
+            for x in range(len(hold_mino[0])):
+                cell = hold_mino[y][x]
+                if cell == 0:
+                    color_index = 0
+                else:
+                    color_index = hold_mino_index
+                color = colors[color_index]
+                pos_x = (board_width + 2) * cell_size
+                pos_y = (board_height - 4) * cell_size
+
+                if hold_mino_index == 4:
+                    pos_x += cell_size
+
+                draw.rectangle([pos_x + x * cell_size, pos_y + y * cell_size, pos_x + (x + 1) * cell_size, pos_y + (y + 1) * cell_size], fill=color, outline='black')
+
         # 画像を保存
         filename = os.path.join(output_dir, f'turn{turn}.png')
         board_img.save(filename)
@@ -115,6 +134,7 @@ def main():
         # 盤面情報を3次元配列として読み込む
         board = []
         next_minos = []
+        hold_minos = []
         for _ in range(turns):
             turn_data = []
             for _ in range(height):
@@ -126,8 +146,11 @@ def main():
             next_mino_turn = list(map(int, file.readline().split()))
             next_minos.append(next_mino_turn)
 
+            # ホールドミノの番号を読み込んで1次元配列に追加する
+            hold_minos.append(int(file.readline()))
+
     # Tetrisのゲーム盤画像を生成
-    generate_tetris_board(board, next_minos)
+    generate_tetris_board(board, next_minos, hold_minos)
 
     # GIFを作成する
     # create_gif([tetris_board]*10, 'tetris_animation.gif', duration=0.2)
