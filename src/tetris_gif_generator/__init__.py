@@ -6,13 +6,13 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .config import colors, minos
 
-output_dir = 'img'
+output_dir = 'img/output'
 NEXT_MINO_COLUMN = 4
 
 # Tetrisのゲーム盤を生成する関数
 def generate_tetris_board(board, next_minos, hold_minos):
     # 1マスのサイズ
-    cell_size = 20
+    cell_size = 30
 
     # フォントの設定
     font_size = cell_size
@@ -28,14 +28,6 @@ def generate_tetris_board(board, next_minos, hold_minos):
     # ゲーム盤の画像を生成
     board_img = Image.new('RGB', (img_width, img_height), color='white')
     draw = ImageDraw.Draw(board_img)
-    
-    # 左右のブロックを黒で塗る
-    for y in range(board_height + 1):
-        draw.rectangle([0, y * cell_size, cell_size, (y + 1) * cell_size], fill=colors[8], outline='black')  # 左側
-        draw.rectangle([(board_width+1) * cell_size, y * cell_size, (board_width+2) * cell_size, (y + 1) * cell_size], fill=colors[8], outline='black')  # 右側
-    # 下のブロックを黒で塗る
-    for x in range(board_width + 2):
-        draw.rectangle([x * cell_size, img_height - cell_size, (x + 1) * cell_size, img_height], fill=colors[8], outline='black')
 
     # 盤面を描画
     for turn in range(turns):
@@ -46,11 +38,15 @@ def generate_tetris_board(board, next_minos, hold_minos):
 
         # 左右のブロックを黒で塗る
         for y in range(board_height + 1):
-            draw.rectangle([0, y * cell_size, cell_size, (y + 1) * cell_size], fill=colors[8], outline='black')  # 左側
-            draw.rectangle([(board_width+1) * cell_size, y * cell_size, (board_width+2) * cell_size, (y + 1) * cell_size], fill=colors[8], outline='black')  # 右側
+            image = Image.open(f'img/mino_8.png')
+            resized_image = image.resize((cell_size, cell_size))
+            board_img.paste(resized_image, (0, y * cell_size)) # 左側
+            board_img.paste(resized_image, ((board_width + 1) * cell_size, y * cell_size)) # 右側
         # 下のブロックを黒で塗る
         for x in range(board_width + 2):
-            draw.rectangle([x * cell_size, img_height - cell_size, (x + 1) * cell_size, img_height], fill=colors[8], outline='black')
+            image = Image.open(f'img/mino_8.png')
+            resized_image = image.resize((cell_size, cell_size))
+            board_img.paste(resized_image, (x * cell_size, img_height - cell_size))
 
         for x in range(board_width):
             for y in range(board_height):
@@ -60,8 +56,14 @@ def generate_tetris_board(board, next_minos, hold_minos):
                 # ターンごとの色を取得
                 board_index = board[turn][y][x]
                 color = colors[board_index]
+
                 # 長方形を描画
-                draw.rectangle([pos_x, pos_y, pos_x + cell_size, pos_y + cell_size], fill=color, outline='black')
+                if board_index != 0:
+                    image = Image.open(f'img/mino_{board_index}.png')
+                    resized_image = image.resize((cell_size, cell_size))
+                    board_img.paste(resized_image, (pos_x, pos_y))
+                else:
+                    draw.rectangle([pos_x, pos_y, pos_x + cell_size, pos_y + cell_size], fill=color, outline='black')
 
         # ネクストミノを描画
         next_mino_height = 1
@@ -84,7 +86,13 @@ def generate_tetris_board(board, next_minos, hold_minos):
                     if mino_index == 4:
                         pos_x += cell_size
                     
-                    draw.rectangle([pos_x, pos_y, pos_x + cell_size, pos_y + cell_size], fill=color, outline='black')
+                    if color_index != 0:
+                        image = Image.open(f'img/mino_{color_index}.png')
+                        resized_image = image.resize((cell_size, cell_size))
+                        board_img.paste(resized_image, (pos_x, pos_y))
+                    else:
+                        draw.rectangle([pos_x, pos_y, pos_x + cell_size, pos_y + cell_size], fill=color, outline='black')
+
             next_mino_height += len(mino[0]) + 1
 
         # ホールドミノを描画
@@ -98,13 +106,18 @@ def generate_tetris_board(board, next_minos, hold_minos):
                 else:
                     color_index = hold_mino_index
                 color = colors[color_index]
-                pos_x = (board_width + 2) * cell_size
-                pos_y = (board_height - 4) * cell_size
+                pos_x = (board_width + 2 + x) * cell_size
+                pos_y = (board_height - 4 + y) * cell_size
 
                 if hold_mino_index == 4:
                     pos_x += cell_size
 
-                draw.rectangle([pos_x + x * cell_size, pos_y + y * cell_size, pos_x + (x + 1) * cell_size, pos_y + (y + 1) * cell_size], fill=color, outline='black')
+                if color_index != 0:
+                    image = Image.open(f'img/mino_{color_index}.png')
+                    resized_image = image.resize((cell_size, cell_size))
+                    board_img.paste(resized_image, (pos_x, pos_y))
+                else:
+                    draw.rectangle([pos_x, pos_y, pos_x + cell_size, pos_y + cell_size], fill=color, outline='black')
 
         # 画像を保存
         filename = os.path.join(output_dir, f'turn{turn}.png')
