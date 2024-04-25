@@ -3,7 +3,7 @@
 This is a tool for creating GIFs from Tetris board data.
 
 <p align="center">
-  <img src="tetris_animation.gif" alt="tetris_animation">
+  <img src="img/sample_animation.gif" alt="tetris_animation">
 </p>
 
 ## Setup
@@ -74,6 +74,8 @@ $$
 $$
 hold_{T} \\
 $$
+
+[sample input](img/sample.txt)
 
 The table below shows the correspondence between the numbers and Tetris pieces along with their respective colors:
 
